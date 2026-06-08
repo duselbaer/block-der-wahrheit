@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/gameStore";
-import { selectCurrentRound, selectAllBidsEntered, selectAllActualsEntered } from "@/store/selectors";
+import { selectCurrentRound, selectAllBidsEntered, selectAllActualsEntered, selectRemainingActualTricks } from "@/store/selectors";
 import { RoundHeader } from "@/components/game/RoundHeader";
 import { ScoreTable } from "@/components/game/ScoreTable";
 
@@ -105,7 +105,13 @@ export default function GamePage() {
                     </span>
                     <button
                       onClick={() =>
-                        enterActualTricks(player.id, Math.min(round.cardCount, (ps.actualTricks ?? 0) + 1))
+                        enterActualTricks(
+                          player.id,
+                          Math.min(
+                            (ps.actualTricks ?? 0) + selectRemainingActualTricks(game, player.id),
+                            (ps.actualTricks ?? 0) + 1,
+                          ),
+                        )
                       }
                       className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95"
                     >
