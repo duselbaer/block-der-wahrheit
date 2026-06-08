@@ -32,10 +32,22 @@ export function selectAllBidsEntered(game: Game): boolean {
   return round.playerScores.every((ps) => ps.predictedTricks !== null);
 }
 
+export function selectRemainingActualTricks(game: Game, playerId: string): number {
+  const round = selectCurrentRound(game);
+  if (!round) return 0;
+  const othersSum = round.playerScores
+    .filter((ps) => ps.playerId !== playerId && ps.actualTricks !== null)
+    .reduce((sum, ps) => sum + (ps.actualTricks ?? 0), 0);
+  return Math.max(0, round.cardCount - othersSum);
+}
+
 export function selectAllActualsEntered(game: Game): boolean {
   const round = selectCurrentRound(game);
   if (!round) return false;
-  return round.playerScores.every((ps) => ps.actualTricks !== null);
+  const allEntered = round.playerScores.every((ps) => ps.actualTricks !== null);
+  if (!allEntered) return false;
+  const sum = round.playerScores.reduce((s, ps) => s + (ps.actualTricks ?? 0), 0);
+  return sum === round.cardCount;
 }
 
 export function selectTotalRounds(game: Game): number {

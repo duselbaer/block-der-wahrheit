@@ -80,9 +80,12 @@ describe("Store: vollständiger Spielzyklus", () => {
     s().startGame(["A", "B", "C", "D", "E", "F"]); // 6 Spieler = 10 Runden
 
     for (let i = 0; i < 10; i++) {
+      const cardCount = i + 1; // cardCount == roundNumber
       players().forEach((p) => s().enterBid(p.id, 0));
       s().advanceToPlaying();
-      players().forEach((p) => s().enterActualTricks(p.id, 0));
+      // Erster Spieler bekommt alle Stiche, damit sum === cardCount
+      s().enterActualTricks(players()[0]!.id, cardCount);
+      players().slice(1).forEach((p) => s().enterActualTricks(p.id, 0));
       s().completeRound();
     }
 
