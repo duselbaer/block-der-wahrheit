@@ -1,9 +1,8 @@
-import { v4 as uuidv4 } from "uuid";
 import { calculateTotalRounds } from "./scoreEngine";
 import type { Game, Player, Round } from "./types";
 
 export function createPlayer(name: string): Player {
-  return { id: uuidv4(), name: name.trim() };
+  return { id: crypto.randomUUID(), name: name.trim() };
 }
 
 export function createRound(roundNumber: number, players: Player[]): Round {
@@ -28,7 +27,7 @@ export function createGame(playerNames: string[]): Game {
   );
 
   return {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     players,
     rounds,
