@@ -68,6 +68,8 @@ doc/
 |-----|-------------|
 | ADR-001 | Next.js ohne tRPC/Prisma – reiner Frontend-Prototyp |
 | ADR-002 | Zustand + localStorage statt Server-State |
+| ADR-003 | Stich-Summen-Constraint via Selektoren und UI-Caps |
+| ADR-004 | UUID-Generierung via `globalThis.crypto.randomUUID()` |
 
 Vollständige ADRs: `doc/decisions/`
 
@@ -81,6 +83,33 @@ Vollständige ADRs: `doc/decisions/`
 2. **Store** (`src/store/`) – Zustand + Selektoren
 3. **UI-Komponenten** (`src/components/game/`)
 4. **Seiten** (`src/app/`)
+
+### Isomorphe Regeln (Browser + Server)
+
+Code in `src/domain/` und `src/store/` wird von Next.js **in den Browser
+gebündelt**. Dort dürfen **keine Node.js-spezifischen Importe** verwendet werden:
+
+| ❌ Verboten | ✅ Korrekt |
+|------------|-----------|
+| `import { randomUUID } from "node:crypto"` | `globalThis.crypto.randomUUID()` |
+| `import fs from "fs"` | — (kein Dateisystem im Browser) |
+| `import path from "path"` | — (kein Pfad-Modul im Browser) |
+
+**Faustregel:** Alles unter `src/domain/` und `src/store/` muss in einem
+Browser-Tab ohne Node.js laufen können.
+
+### Node-Version & NVM
+
+Das Projekt nutzt **NVM**. Vor dem Arbeiten immer:
+
+```bash
+nvm use        # liest .nvmrc (Node 24)
+```
+
+Die Datei `.nvmrc` enthält `24`. Vercel liest `engines.node >= 24.0.0` aus
+`package.json` und baut mit Node 24. Es gibt **keine GitHub Actions Pipeline**
+— falls eine ergänzt wird, muss sie `node-version-file: .nvmrc` nutzen
+(siehe ADR-004).
 
 ### Code-Stil
 
