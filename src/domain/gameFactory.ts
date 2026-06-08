@@ -1,9 +1,8 @@
-import { randomUUID } from "node:crypto";
 import { calculateTotalRounds } from "./scoreEngine";
 import type { Game, Player, Round } from "./types";
 
 export function createPlayer(name: string): Player {
-  return { id: randomUUID(), name: name.trim() };
+  return { id: globalThis.crypto.randomUUID(), name: name.trim() };
 }
 
 export function createRound(roundNumber: number, players: Player[]): Round {
@@ -28,7 +27,7 @@ export function createGame(playerNames: string[]): Game {
   );
 
   return {
-    id: randomUUID(),
+    id: globalThis.crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     players,
     rounds,
