@@ -84,6 +84,8 @@ export default function GamePage() {
           {game.players.map((player) => {
             const ps = round.playerScores.find((s) => s.playerId === player.id)!;
             const predicted = ps.predictedTricks ?? 0;
+            const currentActual = ps.actualTricks ?? 0;
+            const remaining = selectRemainingActualTricks(game, player.id);
             return (
               <div key={player.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center gap-3">
@@ -93,27 +95,19 @@ export default function GamePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() =>
-                        enterActualTricks(player.id, Math.max(0, (ps.actualTricks ?? 0) - 1))
-                      }
-                      className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95"
+                      onClick={() => enterActualTricks(player.id, Math.max(0, currentActual - 1))}
+                      disabled={currentActual <= 0}
+                      className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       −
                     </button>
                     <span className="w-10 text-center text-xl font-bold tabular-nums text-slate-900">
-                      {ps.actualTricks ?? 0}
+                      {currentActual}
                     </span>
                     <button
-                      onClick={() =>
-                        enterActualTricks(
-                          player.id,
-                          Math.min(
-                            (ps.actualTricks ?? 0) + selectRemainingActualTricks(game, player.id),
-                            (ps.actualTricks ?? 0) + 1,
-                          ),
-                        )
-                      }
-                      className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95"
+                      onClick={() => enterActualTricks(player.id, Math.min(remaining, currentActual + 1))}
+                      disabled={currentActual >= remaining}
+                      className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       +
                     </button>
