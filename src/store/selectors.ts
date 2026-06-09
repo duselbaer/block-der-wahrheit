@@ -42,8 +42,6 @@ export function selectRemainingActualTricks(game: Game, playerId: string): numbe
 export function selectAllActualsEntered(game: Game): boolean {
   const round = selectCurrentRound(game);
   if (!round) return false;
-  const allEntered = round.playerScores.every((ps) => ps.actualTricks !== null);
-  if (!allEntered) return false;
   const sum = round.playerScores.reduce((s, ps) => s + (ps.actualTricks ?? 0), 0);
   return sum === round.cardCount;
 }
