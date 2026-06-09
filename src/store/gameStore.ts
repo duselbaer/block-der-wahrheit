@@ -91,9 +91,19 @@ export const useGameStore = create<GameStore>()(
           const nextIndex = state.game.currentRoundIndex + 1;
           const isLastRound = nextIndex >= state.game.rounds.length;
 
-          const rounds = state.game.rounds.map((round, i) =>
-            i === state.game!.currentRoundIndex ? { ...round, status: "complete" as const } : round,
-          );
+          const rounds = state.game.rounds.map((round, i) => {
+            if (i !== state.game!.currentRoundIndex) return round;
+            return {
+              ...round,
+              status: "complete" as const,
+              playerScores: round.playerScores.map((ps) => {
+                if (ps.actualTricks !== null) return ps;
+                const actual = 0;
+                const score = ps.predictedTricks !== null ? calculateScore(ps.predictedTricks, actual) : null;
+                return { ...ps, actualTricks: actual, score };
+              }),
+            };
+          });
 
           return {
             game: {

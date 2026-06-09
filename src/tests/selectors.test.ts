@@ -94,4 +94,14 @@ describe("selectAllActualsEntered", () => {
     const game = makeGame(3, [3]);
     expect(selectAllActualsEntered(game)).toBe(true);
   });
+
+  it("ein Spieler hat null (implizit 0), Summe stimmt → true", () => {
+    const game = makeGame(3, [3, null]);
+    expect(selectAllActualsEntered(game)).toBe(true);
+  });
+
+  it("mehrere Spieler haben null, Summe stimmt → true", () => {
+    const game = makeGame(3, [3, null, null]);
+    expect(selectAllActualsEntered(game)).toBe(true);
+  });
 });

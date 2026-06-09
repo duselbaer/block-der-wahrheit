@@ -103,6 +103,29 @@ describe("Store: vollständiger Spielzyklus", () => {
     expect(s().game!.status).toBe("finished");
   });
 
+  it("completeRound normalisiert null-Actual zu 0 und berechnet Score", () => {
+    s().startGame(["Alice", "Bob", "Carol"]);
+    const [alice, bob, carol] = [players()[0]!, players()[1]!, players()[2]!];
+
+    // Runde 1 (cardCount=1): Alice sagt 1 an, Bob/Carol bleiben null (= implizit 0)
+    s().enterBid(alice.id, 1);
+    s().advanceToPlaying();
+    s().enterActualTricks(alice.id, 1);
+    // Bob und Carol bleiben null → completeRound soll auf 0 normalisieren
+
+    s().completeRound();
+
+    const round = s().game!.rounds[0]!;
+    const bobPs = round.playerScores.find((ps) => ps.playerId === bob.id)!;
+    const carolPs = round.playerScores.find((ps) => ps.playerId === carol.id)!;
+
+    expect(bobPs.actualTricks).toBe(0);
+    expect(carolPs.actualTricks).toBe(0);
+    // predictedTricks=0, actual=0 → Treffer → 20 + 0*10 = 20
+    expect(bobPs.score).toBe(20);
+    expect(carolPs.score).toBe(20);
+  });
+
   it("resetGame löscht das Spiel", () => {
     s().startGame(["Alice", "Bob"]);
     s().resetGame();
