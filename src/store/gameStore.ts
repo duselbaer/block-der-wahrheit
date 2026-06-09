@@ -9,18 +9,21 @@ import type { Game } from "@/domain/types";
 
 interface GameStore {
   game: Game | null;
+  lastPlayerNames: string[];
   startGame: (playerNames: string[]) => void;
   enterBid: (playerId: string, predicted: number) => void;
   advanceToPlaying: () => void;
   enterActualTricks: (playerId: string, actual: number) => void;
   completeRound: () => void;
   resetGame: () => void;
+  abandonGame: () => void;
 }
 
 export const useGameStore = create<GameStore>()(
   persist(
     (set, get) => ({
       game: null,
+      lastPlayerNames: [],
 
       startGame: (playerNames) => {
         const game = createGame(playerNames);
@@ -119,10 +122,17 @@ export const useGameStore = create<GameStore>()(
       resetGame: () => {
         set({ game: null });
       },
+
+      abandonGame: () => {
+        set((state) => ({
+          lastPlayerNames: state.game?.players.map((p) => p.name) ?? state.lastPlayerNames,
+          game: null,
+        }));
+      },
     }),
     {
       name: "wizard-game-store",
-      version: 1,
+      version: 2,
     },
   ),
 );

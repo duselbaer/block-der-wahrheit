@@ -8,7 +8,10 @@ import { calculateTotalRounds } from "@/domain/scoreEngine";
 export default function SetupPage() {
   const router = useRouter();
   const startGame = useGameStore((s) => s.startGame);
-  const [names, setNames] = useState<string[]>(["", ""]);
+  const lastPlayerNames = useGameStore((s) => s.lastPlayerNames);
+  const [names, setNames] = useState<string[]>(() =>
+    lastPlayerNames.length >= 2 ? lastPlayerNames : ["", ""],
+  );
 
   const validNames = names.map((n) => n.trim()).filter((n) => n.length > 0);
   const canStart = validNames.length >= 2;

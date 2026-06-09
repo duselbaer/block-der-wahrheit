@@ -14,6 +14,13 @@ export default function GamePage() {
   const advanceToPlaying = useGameStore((s) => s.advanceToPlaying);
   const enterActualTricks = useGameStore((s) => s.enterActualTricks);
   const completeRound = useGameStore((s) => s.completeRound);
+  const abandonGame = useGameStore((s) => s.abandonGame);
+
+  function handleAbandon() {
+    if (!window.confirm("Spiel wirklich beenden? Der aktuelle Spielstand geht verloren.")) return;
+    abandonGame();
+    router.push("/");
+  }
 
   useEffect(() => {
     if (!game) router.replace("/");
@@ -147,6 +154,13 @@ export default function GamePage() {
           <ScoreTable game={game} />
         </div>
       )}
+
+      <button
+        onClick={handleAbandon}
+        className="w-full rounded-xl border-2 border-red-200 bg-white px-6 py-3 text-base font-semibold text-red-600 shadow-sm transition hover:border-red-400 hover:bg-red-50 active:scale-95"
+      >
+        Spiel beenden
+      </button>
     </div>
   );
 }
