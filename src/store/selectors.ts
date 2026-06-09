@@ -27,9 +27,7 @@ export function selectLeaderboard(game: Game): LeaderboardEntry[] {
 }
 
 export function selectAllBidsEntered(game: Game): boolean {
-  const round = selectCurrentRound(game);
-  if (!round) return false;
-  return round.playerScores.every((ps) => ps.predictedTricks !== null);
+  return selectCurrentRound(game) !== null;
 }
 
 export function selectRemainingActualTricks(game: Game, playerId: string): number {

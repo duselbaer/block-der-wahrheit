@@ -47,9 +47,17 @@ export const useGameStore = create<GameStore>()(
         set((state) => {
           if (!state.game) return state;
           if (!selectAllBidsEntered(state.game)) return state;
-          const rounds = state.game.rounds.map((round, i) =>
-            i === state.game!.currentRoundIndex ? { ...round, status: "playing" as const } : round,
-          );
+          const rounds = state.game.rounds.map((round, i) => {
+            if (i !== state.game!.currentRoundIndex) return round;
+            return {
+              ...round,
+              status: "playing" as const,
+              playerScores: round.playerScores.map((ps) => ({
+                ...ps,
+                predictedTricks: ps.predictedTricks ?? 0,
+              })),
+            };
+          });
           return { game: { ...state.game, rounds, status: "playing" } };
         });
       },

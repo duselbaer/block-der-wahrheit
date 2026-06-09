@@ -47,11 +47,22 @@ describe("Store: vollständiger Spielzyklus", () => {
     expect(s().game!.status).toBe("playing");
   });
 
-  it("advanceToPlaying tut nichts wenn Voraussagen fehlen", () => {
+  it("advanceToPlaying normalisiert null-Gebote zu 0", () => {
     s().startGame(["Alice", "Bob"]);
-    s().enterBid(players()[0]!.id, 1);
     s().advanceToPlaying();
-    expect(s().game!.status).toBe("bidding");
+    const round = selectCurrentRound(s().game);
+    round!.playerScores.forEach((ps) => {
+      expect(ps.predictedTricks).toBe(0);
+    });
+  });
+
+  it("advanceToPlaying normalisiert nur null — explizite Gebote bleiben erhalten", () => {
+    s().startGame(["Alice", "Bob"]);
+    s().enterBid(players()[0]!.id, 2);
+    s().advanceToPlaying();
+    const round = selectCurrentRound(s().game);
+    expect(round!.playerScores.find((ps) => ps.playerId === players()[0]!.id)!.predictedTricks).toBe(2);
+    expect(round!.playerScores.find((ps) => ps.playerId === players()[1]!.id)!.predictedTricks).toBe(0);
   });
 
   it("completeRound berechnet Scores und wechselt zur nächsten Runde", () => {
@@ -123,10 +134,9 @@ describe("Store: Selektoren", () => {
     expect(lb[1]!.score).toBe(20);
   });
 
-  it("selectAllBidsEntered ist false wenn Bids fehlen", () => {
+  it("selectAllBidsEntered ist true ohne jede Interaktion", () => {
     s().startGame(["Alice", "Bob"]);
-    s().enterBid(players()[0]!.id, 0);
-    expect(selectAllBidsEntered(s().game!)).toBe(false);
+    expect(selectAllBidsEntered(s().game!)).toBe(true);
   });
 
   it("selectAllBidsEntered ist true wenn alle geboten haben", () => {
