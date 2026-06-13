@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/gameStore";
 import { selectLeaderboard } from "@/store/selectors";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { ScoreTable } from "@/components/game/ScoreTable";
 
 export default function FinishedPage() {
@@ -18,7 +19,8 @@ export default function FinishedPage() {
   if (!game) return null;
 
   const leaderboard = selectLeaderboard(game);
-  const winner = leaderboard[0]!;
+  const winner = leaderboard[0];
+  if (!winner) return null;
 
   function handleNewGame() {
     resetGame();
@@ -56,12 +58,9 @@ export default function FinishedPage() {
         <ScoreTable game={game} />
       </div>
 
-      <button
-        onClick={handleNewGame}
-        className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-indigo-700 active:scale-95"
-      >
+      <PrimaryButton onClick={handleNewGame}>
         Neues Spiel starten
-      </button>
+      </PrimaryButton>
     </div>
   );
 }

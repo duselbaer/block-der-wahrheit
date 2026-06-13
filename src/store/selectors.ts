@@ -26,7 +26,7 @@ export function selectLeaderboard(game: Game): LeaderboardEntry[] {
     .map((entry, index) => ({ ...entry, rank: index + 1 }));
 }
 
-export function selectAllBidsEntered(game: Game): boolean {
+export function selectCanAdvanceToPlaying(game: Game): boolean {
   return selectCurrentRound(game) !== null;
 }
 

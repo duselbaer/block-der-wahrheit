@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/gameStore";
 import { calculateTotalRounds } from "@/domain/scoreEngine";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 export default function SetupPage() {
   const router = useRouter();
@@ -81,13 +82,9 @@ export default function SetupPage() {
         </p>
       )}
 
-      <button
-        onClick={handleStart}
-        disabled={!canStart}
-        className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 active:scale-95"
-      >
+      <PrimaryButton onClick={handleStart} disabled={!canStart}>
         Spiel starten
-      </button>
+      </PrimaryButton>
     </div>
   );
 }

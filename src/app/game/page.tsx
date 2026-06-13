@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/gameStore";
-import { selectCurrentRound, selectAllBidsEntered, selectAllActualsEntered, selectRemainingActualTricks } from "@/store/selectors";
+import { useGameNavigation } from "@/hooks/useGameNavigation";
+import { selectCurrentRound, selectCanAdvanceToPlaying, selectAllActualsEntered, selectRemainingActualTricks } from "@/store/selectors";
+import { calculateHitScore, calculateMissScore } from "@/domain/scoreEngine";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { CounterButton } from "@/components/ui/CounterButton";
 import { RoundHeader } from "@/components/game/RoundHeader";
 import { ScoreTable } from "@/components/game/ScoreTable";
 
 export default function GamePage() {
   const router = useRouter();
-  const game = useGameStore((s) => s.game);
+  const game = useGameNavigation();
   const enterBid = useGameStore((s) => s.enterBid);
   const advanceToPlaying = useGameStore((s) => s.advanceToPlaying);
   const enterActualTricks = useGameStore((s) => s.enterActualTricks);
@@ -22,17 +25,12 @@ export default function GamePage() {
     router.push("/");
   }
 
-  useEffect(() => {
-    if (!game) router.replace("/");
-    else if (game.status === "finished") router.replace("/finished");
-  }, [game, router]);
-
   if (!game || game.status === "finished" || game.status === "setup") return null;
 
   const round = selectCurrentRound(game);
   if (!round) return null;
 
-  const allBidsDone = selectAllBidsEntered(game);
+  const allBidsDone = selectCanAdvanceToPlaying(game);
   const allActualsDone = selectAllActualsEntered(game);
 
   return (
@@ -47,41 +45,34 @@ export default function GamePage() {
         <div className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold text-slate-800">Wie viele Stiche machst du?</h2>
           {game.players.map((player) => {
-            const ps = round.playerScores.find((s) => s.playerId === player.id)!;
+            const ps = round.playerScores.find((s) => s.playerId === player.id);
+            if (!ps) return null;
             return (
               <div key={player.id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <span className="flex-1 font-medium text-slate-800">{player.name}</span>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() =>
-                      enterBid(player.id, Math.max(0, (ps.predictedTricks ?? 0) - 1))
-                    }
-                    className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95"
+                  <CounterButton
+                    onClick={() => enterBid(player.id, Math.max(0, (ps.predictedTricks ?? 0) - 1))}
+                    aria-label={`${player.name} Ansage um 1 reduzieren`}
                   >
                     −
-                  </button>
+                  </CounterButton>
                   <span className="w-10 text-center text-xl font-bold tabular-nums text-slate-900">
                     {ps.predictedTricks ?? 0}
                   </span>
-                  <button
-                    onClick={() =>
-                      enterBid(player.id, Math.min(round.cardCount, (ps.predictedTricks ?? 0) + 1))
-                    }
-                    className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95"
+                  <CounterButton
+                    onClick={() => enterBid(player.id, Math.min(round.cardCount, (ps.predictedTricks ?? 0) + 1))}
+                    aria-label={`${player.name} Ansage um 1 erhöhen`}
                   >
                     +
-                  </button>
+                  </CounterButton>
                 </div>
               </div>
             );
           })}
-          <button
-            onClick={advanceToPlaying}
-            disabled={!allBidsDone}
-            className="mt-2 w-full rounded-xl bg-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-indigo-700 disabled:opacity-40 active:scale-95"
-          >
+          <PrimaryButton onClick={advanceToPlaying} disabled={!allBidsDone} className="mt-2">
             Runde spielen
-          </button>
+          </PrimaryButton>
         </div>
       )}
 
@@ -89,7 +80,8 @@ export default function GamePage() {
         <div className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold text-slate-800">Wie viele Stiche hattest du?</h2>
           {game.players.map((player) => {
-            const ps = round.playerScores.find((s) => s.playerId === player.id)!;
+            const ps = round.playerScores.find((s) => s.playerId === player.id);
+            if (!ps) return null;
             const predicted = ps.predictedTricks ?? 0;
             const currentActual = ps.actualTricks ?? 0;
             const remaining = selectRemainingActualTricks(game, player.id);
@@ -101,34 +93,34 @@ export default function GamePage() {
                     <span className="ml-2 text-sm text-slate-400">Ansage: {predicted}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
+                    <CounterButton
                       onClick={() => enterActualTricks(player.id, Math.max(0, currentActual - 1))}
                       disabled={currentActual <= 0}
-                      className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                      aria-label={`${player.name} Stiche um 1 reduzieren`}
                     >
                       −
-                    </button>
+                    </CounterButton>
                     <span className="w-10 text-center text-xl font-bold tabular-nums text-slate-900">
                       {currentActual}
                     </span>
-                    <button
+                    <CounterButton
                       onClick={() => enterActualTricks(player.id, Math.min(remaining, currentActual + 1))}
                       disabled={currentActual >= remaining}
-                      className="h-9 w-9 rounded-lg border border-slate-300 text-lg font-bold text-slate-600 hover:bg-slate-100 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                      aria-label={`${player.name} Stiche um 1 erhöhen`}
                     >
                       +
-                    </button>
+                    </CounterButton>
                   </div>
                 </div>
                 {ps.actualTricks !== null && (
                   <div className="mt-2 text-sm">
                     {ps.actualTricks === predicted ? (
                       <span className="font-semibold text-emerald-600">
-                        Treffer! +{20 + predicted * 10} Punkte
+                        Treffer! +{calculateHitScore(predicted)} Punkte
                       </span>
                     ) : (
-                      <span className="font-semibold text-red-500">
-                        Daneben − {10 * Math.abs((ps.actualTricks ?? 0) - predicted)} Punkte
+                      <span className="font-semibold text-red-600">
+                        Daneben − {calculateMissScore(predicted, ps.actualTricks)} Punkte
                       </span>
                     )}
                   </div>
@@ -136,13 +128,9 @@ export default function GamePage() {
               </div>
             );
           })}
-          <button
-            onClick={completeRound}
-            disabled={!allActualsDone}
-            className="mt-2 w-full rounded-xl bg-emerald-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-emerald-700 disabled:opacity-40 active:scale-95"
-          >
+          <PrimaryButton variant="emerald" onClick={completeRound} disabled={!allActualsDone} className="mt-2">
             Runde abschliessen
-          </button>
+          </PrimaryButton>
         </div>
       )}
 
@@ -155,12 +143,9 @@ export default function GamePage() {
         </div>
       )}
 
-      <button
-        onClick={handleAbandon}
-        className="w-full rounded-xl border-2 border-red-200 bg-white px-6 py-3 text-base font-semibold text-red-600 shadow-sm transition hover:border-red-400 hover:bg-red-50 active:scale-95"
-      >
+      <PrimaryButton variant="red-outline" onClick={handleAbandon} className="py-3 text-base">
         Spiel beenden
-      </button>
+      </PrimaryButton>
     </div>
   );
 }

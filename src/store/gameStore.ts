@@ -4,8 +4,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createGame } from "@/domain/gameFactory";
 import { calculateScore } from "@/domain/scoreEngine";
-import { selectCurrentRound, selectAllBidsEntered, selectAllActualsEntered } from "./selectors";
-import type { Game } from "@/domain/types";
+import { selectCanAdvanceToPlaying, selectAllActualsEntered } from "./selectors";
+import type { Game, Round } from "@/domain/types";
 
 interface GameStore {
   game: Game | null;
@@ -19,9 +19,16 @@ interface GameStore {
   abandonGame: () => void;
 }
 
+function updateCurrentRound(game: Game, fn: (round: Round) => Round): Game {
+  return {
+    ...game,
+    rounds: game.rounds.map((r, i) => (i === game.currentRoundIndex ? fn(r) : r)),
+  };
+}
+
 export const useGameStore = create<GameStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       game: null,
       lastPlayerNames: [],
 
@@ -33,44 +40,42 @@ export const useGameStore = create<GameStore>()(
       enterBid: (playerId, predicted) => {
         set((state) => {
           if (!state.game) return state;
-          const rounds = state.game.rounds.map((round, i) => {
-            if (i !== state.game!.currentRoundIndex) return round;
-            return {
+          return {
+            game: updateCurrentRound(state.game, (round) => ({
               ...round,
               playerScores: round.playerScores.map((ps) =>
                 ps.playerId === playerId ? { ...ps, predictedTricks: predicted } : ps,
               ),
-            };
-          });
-          return { game: { ...state.game, rounds } };
+            })),
+          };
         });
       },
 
       advanceToPlaying: () => {
         set((state) => {
           if (!state.game) return state;
-          if (!selectAllBidsEntered(state.game)) return state;
-          const rounds = state.game.rounds.map((round, i) => {
-            if (i !== state.game!.currentRoundIndex) return round;
-            return {
-              ...round,
-              status: "playing" as const,
-              playerScores: round.playerScores.map((ps) => ({
-                ...ps,
-                predictedTricks: ps.predictedTricks ?? 0,
+          if (!selectCanAdvanceToPlaying(state.game)) return state;
+          return {
+            game: {
+              ...updateCurrentRound(state.game, (round) => ({
+                ...round,
+                status: "playing" as const,
+                playerScores: round.playerScores.map((ps) => ({
+                  ...ps,
+                  predictedTricks: ps.predictedTricks ?? 0,
+                })),
               })),
-            };
-          });
-          return { game: { ...state.game, rounds, status: "playing" } };
+              status: "playing",
+            },
+          };
         });
       },
 
       enterActualTricks: (playerId, actual) => {
         set((state) => {
           if (!state.game) return state;
-          const rounds = state.game.rounds.map((round, i) => {
-            if (i !== state.game!.currentRoundIndex) return round;
-            return {
+          return {
+            game: updateCurrentRound(state.game, (round) => ({
               ...round,
               playerScores: round.playerScores.map((ps) => {
                 if (ps.playerId !== playerId) return ps;
@@ -80,9 +85,8 @@ export const useGameStore = create<GameStore>()(
                     : null;
                 return { ...ps, actualTricks: actual, score };
               }),
-            };
-          });
-          return { game: { ...state.game, rounds } };
+            })),
+          };
         });
       },
 
@@ -94,24 +98,21 @@ export const useGameStore = create<GameStore>()(
           const nextIndex = state.game.currentRoundIndex + 1;
           const isLastRound = nextIndex >= state.game.rounds.length;
 
-          const rounds = state.game.rounds.map((round, i) => {
-            if (i !== state.game!.currentRoundIndex) return round;
-            return {
-              ...round,
-              status: "complete" as const,
-              playerScores: round.playerScores.map((ps) => {
-                if (ps.actualTricks !== null) return ps;
-                const actual = 0;
-                const score = ps.predictedTricks !== null ? calculateScore(ps.predictedTricks, actual) : null;
-                return { ...ps, actualTricks: actual, score };
-              }),
-            };
-          });
+          const updated = updateCurrentRound(state.game, (round) => ({
+            ...round,
+            status: "complete" as const,
+            playerScores: round.playerScores.map((ps) => {
+              if (ps.actualTricks !== null) return ps;
+              const actual = 0;
+              const score =
+                ps.predictedTricks !== null ? calculateScore(ps.predictedTricks, actual) : null;
+              return { ...ps, actualTricks: actual, score };
+            }),
+          }));
 
           return {
             game: {
-              ...state.game,
-              rounds,
+              ...updated,
               currentRoundIndex: isLastRound ? state.game.currentRoundIndex : nextIndex,
               status: isLastRound ? "finished" : "bidding",
             },

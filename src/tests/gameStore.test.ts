@@ -3,7 +3,7 @@ import { useGameStore } from "@/store/gameStore";
 import {
   selectCurrentRound,
   selectLeaderboard,
-  selectAllBidsEntered,
+  selectCanAdvanceToPlaying,
   selectAllActualsEntered,
 } from "@/store/selectors";
 import type { Player } from "@/domain/types";
@@ -179,16 +179,16 @@ describe("Store: Selektoren", () => {
     expect(lb[1]!.score).toBe(20);
   });
 
-  it("selectAllBidsEntered ist true ohne jede Interaktion", () => {
+  it("selectCanAdvanceToPlaying ist true ohne jede Interaktion", () => {
     s().startGame(["Alice", "Bob"]);
-    expect(selectAllBidsEntered(s().game!)).toBe(true);
+    expect(selectCanAdvanceToPlaying(s().game!)).toBe(true);
   });
 
-  it("selectAllBidsEntered ist true wenn alle geboten haben", () => {
+  it("selectCanAdvanceToPlaying ist true wenn alle geboten haben", () => {
     s().startGame(["Alice", "Bob"]);
     s().enterBid(players()[0]!.id, 0);
     s().enterBid(players()[1]!.id, 1);
-    expect(selectAllBidsEntered(s().game!)).toBe(true);
+    expect(selectCanAdvanceToPlaying(s().game!)).toBe(true);
   });
 
   it("selectAllActualsEntered ist true wenn alle eingetragen", () => {
