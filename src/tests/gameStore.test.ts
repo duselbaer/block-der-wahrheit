@@ -13,7 +13,7 @@ function s() {
 }
 
 function reset() {
-  useGameStore.setState({ game: null });
+  useGameStore.setState({ game: null, lastPlayerNames: [] });
 }
 
 function players(): Player[] {
@@ -130,6 +130,28 @@ describe("Store: vollständiger Spielzyklus", () => {
     s().startGame(["Alice", "Bob"]);
     s().resetGame();
     expect(s().game).toBeNull();
+  });
+
+  it("abandonGame setzt game auf null und speichert lastPlayerNames", () => {
+    s().startGame(["Alice", "Bob", "Carol"]);
+    s().abandonGame();
+    expect(s().game).toBeNull();
+    expect(s().lastPlayerNames).toEqual(["Alice", "Bob", "Carol"]);
+  });
+
+  it("abandonGame ohne laufendes Spiel lässt lastPlayerNames unverändert", () => {
+    useGameStore.setState({ game: null, lastPlayerNames: ["X", "Y"] });
+    s().abandonGame();
+    expect(s().game).toBeNull();
+    expect(s().lastPlayerNames).toEqual(["X", "Y"]);
+  });
+
+  it("resetGame verändert lastPlayerNames nicht", () => {
+    s().startGame(["Alice", "Bob"]);
+    s().abandonGame();
+    s().startGame(["Alice", "Bob"]);
+    s().resetGame();
+    expect(s().lastPlayerNames).toEqual(["Alice", "Bob"]);
   });
 });
 
