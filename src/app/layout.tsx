@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CookieConsentBanner } from "@/components/consent/CookieConsentBanner";
 
 export const metadata: Metadata = {
   title: "Block der Wahrheit",
@@ -11,6 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="de">
       <body className="min-h-screen bg-slate-50 antialiased">
         <div className="mx-auto max-w-lg px-4 py-6">{children}</div>
+        <CookieConsentBanner />
       </body>
     </html>
   );
