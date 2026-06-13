@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/gameStore";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
 
 export default function Home() {
   const router = useRouter();
@@ -33,22 +34,16 @@ export default function Home() {
 
       <div className="flex w-full flex-col gap-3">
         {game && game.status !== "setup" && (
-          <button
-            onClick={handleContinue}
-            className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-indigo-700 active:scale-95"
-          >
+          <PrimaryButton onClick={handleContinue}>
             Spiel fortsetzen
             <span className="ml-2 text-sm font-normal text-indigo-200">
               ({game.players.map((p) => p.name).join(", ")})
             </span>
-          </button>
+          </PrimaryButton>
         )}
-        <button
-          onClick={handleNewGame}
-          className="w-full rounded-xl border-2 border-indigo-200 bg-white px-6 py-4 text-lg font-semibold text-indigo-700 shadow-sm transition hover:border-indigo-400 active:scale-95"
-        >
+        <PrimaryButton variant="secondary" onClick={handleNewGame}>
           Neues Spiel starten
-        </button>
+        </PrimaryButton>
       </div>
     </div>
   );
