@@ -30,8 +30,8 @@ Nach Klärung aller offenen Punkte:
 2. **PlantUML-Diagramm** (mindestens eines):
    - Domänenmodell, Kontextdiagramm oder Sequenzdiagramm
    - Immer mit Bild-URL UND Quellcode im Markdown einbinden
-   - Server: `https://plantum.ronsp.de`
-   - Format: `https://plantum.ronsp.de/png/<plantuml-encoded>`
+   - Server: `https://plantuml.ronsp.de`
+   - Format: `https://plantuml.ronsp.de/png/<plantuml-encoded>`
 
 3. **Architecture Decision Record** → `doc/decisions/ADR-<NNN>-<titel>.md`
    - Kontext, Entscheidung, Begründung, Konsequenzen
