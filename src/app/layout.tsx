@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "vanilla-cookieconsent/dist/cookieconsent.css";
 import { CookieConsentBanner } from "@/components/consent/CookieConsentBanner";
 
 export const metadata: Metadata = {

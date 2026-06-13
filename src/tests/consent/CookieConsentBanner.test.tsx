@@ -1,39 +1,46 @@
 // @vitest-environment jsdom
-import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner';
 
-function clearConsentCookie() {
-  document.cookie = 'CookieConsent=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-}
-
-beforeEach(() => {
-  clearConsentCookie();
-});
+vi.mock('vanilla-cookieconsent', () => ({
+  run: vi.fn(),
+}));
 
 afterEach(() => {
   cleanup();
-  clearConsentCookie();
+  vi.clearAllMocks();
 });
 
 describe('CookieConsentBanner', () => {
-  it('zeigt das Banner wenn noch kein Consent gespeichert ist', () => {
-    render(<CookieConsentBanner />);
-    expect(screen.getByText('Verstanden')).toBeInTheDocument();
+  it('rendert ohne Fehler und gibt kein DOM-Element aus', () => {
+    const { container } = render(<CookieConsentBanner />);
+    expect(container.firstChild).toBeNull();
   });
 
-  it('speichert Einwilligung als technisch-notwendigen Cookie (nicht als Tracking)', () => {
+  it('initialisiert vanilla-cookieconsent mit disablePageInteraction', async () => {
+    const CookieConsent = await import('vanilla-cookieconsent');
     render(<CookieConsentBanner />);
-    fireEvent.click(screen.getByText('Verstanden'));
 
-    expect(document.cookie).toContain('CookieConsent=true');
+    expect(CookieConsent.run).toHaveBeenCalledOnce();
+    const config = vi.mocked(CookieConsent.run).mock.calls[0][0];
+    expect(config.disablePageInteraction).toBe(true);
   });
 
-  it('zeigt das Banner nicht wenn Consent-Cookie bereits gesetzt ist', () => {
-    document.cookie = 'CookieConsent=true; path=/';
+  it('konfiguriert Kategorien necessary (readOnly) und analytics (opt-in)', async () => {
+    const CookieConsent = await import('vanilla-cookieconsent');
     render(<CookieConsentBanner />);
 
-    expect(screen.queryByText('Verstanden')).not.toBeInTheDocument();
+    const config = vi.mocked(CookieConsent.run).mock.calls[0][0];
+    expect(config.categories?.necessary?.readOnly).toBe(true);
+    expect(config.categories?.analytics?.enabled).toBe(false);
+  });
+
+  it('setzt Deutsch als Standard-Sprache', async () => {
+    const CookieConsent = await import('vanilla-cookieconsent');
+    render(<CookieConsentBanner />);
+
+    const config = vi.mocked(CookieConsent.run).mock.calls[0][0];
+    expect(config.language?.default).toBe('de');
   });
 });

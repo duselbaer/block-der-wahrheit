@@ -1,21 +1,57 @@
 'use client';
 
-import CookieConsent from 'react-cookie-consent';
+import { useEffect } from 'react';
+import * as CookieConsent from 'vanilla-cookieconsent';
 
 export function CookieConsentBanner() {
-  return (
-    <CookieConsent
-      location="bottom"
-      buttonText="Verstanden"
-      cookieName="CookieConsent"
-      disableStyles={true}
-      containerClasses="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-4 bg-slate-800 p-4 text-white shadow-lg"
-      contentClasses="text-sm"
-      buttonClasses="rounded bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400 shrink-0"
-      expires={365}
-    >
-      Diese App speichert deinen Spielstand im lokalen Speicher deines Browsers (localStorage).
-      Es werden keine personenbezogenen Daten erhoben oder an Dritte weitergegeben.
-    </CookieConsent>
-  );
+  useEffect(() => {
+    CookieConsent.run({
+      disablePageInteraction: true,
+      categories: {
+        necessary: { enabled: true, readOnly: true },
+        analytics: { enabled: false },
+      },
+      language: {
+        default: 'de',
+        translations: {
+          de: {
+            consentModal: {
+              title: 'Datenschutzeinstellungen',
+              description:
+                'Diese App speichert deinen Spielstand lokal im Browser (notwendig). ' +
+                'Optional nutzen wir Analyse- und Werbedienste, um die App zu verbessern. ' +
+                'Du kannst jederzeit nur notwendige Cookies akzeptieren.',
+              acceptAllBtn: 'Alle akzeptieren',
+              acceptNecessaryBtn: 'Nur notwendige',
+              showPreferencesBtn: 'Einstellungen',
+            },
+            preferencesModal: {
+              title: 'Cookie-Einstellungen',
+              acceptAllBtn: 'Alle akzeptieren',
+              acceptNecessaryBtn: 'Nur notwendige',
+              savePreferencesBtn: 'Speichern',
+              sections: [
+                {
+                  title: 'Notwendige Cookies',
+                  description:
+                    'Speichert deinen Spielstand im Browser (localStorage). ' +
+                    'Ohne diese Funktion kann kein Spielstand gespeichert werden.',
+                  linkedCategory: 'necessary',
+                },
+                {
+                  title: 'Analyse & Werbung',
+                  description:
+                    'Ermöglicht Nutzungsanalyse (Vercel Analytics) und Werbeanzeigen (Google AdSense). ' +
+                    'Hilft uns, die App zu verbessern und zu finanzieren.',
+                  linkedCategory: 'analytics',
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
+  }, []);
+
+  return null;
 }
