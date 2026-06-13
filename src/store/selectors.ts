@@ -6,10 +6,6 @@ export function selectCurrentRound(game: Game | null): Round | null {
   return game.rounds[game.currentRoundIndex] ?? null;
 }
 
-export function selectPlayerTotalScore(game: Game, playerId: string): number {
-  return aggregatePlayerScore(game, playerId);
-}
-
 export interface LeaderboardEntry {
   player: Player;
   score: number;
