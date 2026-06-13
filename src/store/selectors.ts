@@ -35,6 +35,10 @@ export function selectRemainingActualTricks(game: Game, playerId: string): numbe
   return Math.max(0, round.cardCount - othersSum);
 }
 
+// Prüft über die Summen-Constraint (Stiche = Karten der Runde), nicht über
+// individuelle null-Checks. Funktioniert korrekt, weil selectRemainingActualTricks
+// verhindert, dass der letzte Spieler mehr eintragen kann als noch übrig sind —
+// null-Werte werden dabei als 0 gezählt, was dem Spieldesign entspricht.
 export function selectAllActualsEntered(game: Game): boolean {
   const round = selectCurrentRound(game);
   if (!round) return false;
