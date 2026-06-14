@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   calculateScore,
+  calculateHitScore,
+  calculateMissScore,
   calculateTotalRounds,
   aggregatePlayerScore,
 } from "@/domain/scoreEngine";
@@ -36,6 +38,26 @@ describe("calculateScore", () => {
   });
 });
 
+describe("calculateHitScore", () => {
+  it("0 Stiche vorausgesagt → +20", () => {
+    expect(calculateHitScore(0)).toBe(20);
+  });
+
+  it("3 Stiche vorausgesagt → +50", () => {
+    expect(calculateHitScore(3)).toBe(50);
+  });
+});
+
+describe("calculateMissScore", () => {
+  it("Differenz 1 → 10", () => {
+    expect(calculateMissScore(2, 3)).toBe(10);
+  });
+
+  it("Differenz ist symmetrisch (über/unter)", () => {
+    expect(calculateMissScore(3, 5)).toBe(calculateMissScore(5, 3));
+  });
+});
+
 describe("calculateTotalRounds", () => {
   it("2 Spieler → 30 Runden", () => {
     expect(calculateTotalRounds(2)).toBe(30);
@@ -55,6 +77,14 @@ describe("calculateTotalRounds", () => {
 
   it("6 Spieler → 10 Runden", () => {
     expect(calculateTotalRounds(6)).toBe(10);
+  });
+
+  it("7 Spieler → 8 Runden (Floor von 60/7)", () => {
+    expect(calculateTotalRounds(7)).toBe(8);
+  });
+
+  it("1 Spieler → 60 Runden (Grenzfall, kein Guard)", () => {
+    expect(calculateTotalRounds(1)).toBe(60);
   });
 });
 
